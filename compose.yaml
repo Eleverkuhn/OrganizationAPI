@@ -27,6 +27,17 @@ services:
     ports:
       - "${POSTGRES_TEST_PORT}:5432"
 
+  migrations:
+    build: .
+    container_name: migrations
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: "alembic upgrade head"
+    networks:
+      internal:
+
   fastapi:
     build: .
     container_name: fastapi
@@ -35,7 +46,7 @@ services:
     ports:
       - "${FASTAPI_PORT}:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       internal:

@@ -6,4 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "fastapi[standard]==0.129.0",
+  "SQLAlchemy==2.0.46",
+  "asyncpg==0.31.0",
+  "psycopg[binary]==3.3.3",
+  "alembic==1.18.4",
+  "pydantic-settings==2.13.1",
 ]
