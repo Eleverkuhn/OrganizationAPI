@@ -1,0 +1,41 @@
+networks:
+  internal:
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      internal:
+
+  test_db:
+    image: postgres:latest
+    container_name: test_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+    ports:
+      - "${POSTGRES_TEST_PORT}:5432"
+
+  fastapi:
+    build: .
+    container_name: fastapi
+    env_file: .env
+    command: "uvicorn src.organization_api.main:app --host ${FASTAPI_HOST} --port ${FASTAPI_PORT} --reload"
+    ports:
+      - "${FASTAPI_PORT}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      internal:
