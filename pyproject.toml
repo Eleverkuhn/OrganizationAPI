@@ -11,4 +11,5 @@ dependencies = [
   "psycopg[binary]==3.3.3",
   "alembic==1.18.4",
   "pydantic-settings==2.13.1",
+  "loguru==0.7.3",
 ]
