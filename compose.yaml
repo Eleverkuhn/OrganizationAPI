@@ -34,7 +34,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: "alembic upgrade head"
+    command: sh -c "alembic upgrade head && python3 src/organization_api/data/seed_db.py"
     networks:
       internal:
 
