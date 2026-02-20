@@ -40,7 +40,7 @@ class Department(BaseMixin, Base):
 
     children: Mapped[list["Department"]] = relationship(
         "Department",
-        remote_side=[id],
+        remote_side="Department.id",
         backref="parent",
         cascade="all, delete",
         passive_deletes=True,
