@@ -1,7 +1,4 @@
-import json
-
 import pytest
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.seed_db import FIXTURE_DIR, read_fixture, seed_db
@@ -17,9 +14,7 @@ async def test_bulk_create(session: AsyncSession) -> None:
 
     await repository.bulk_create(data)
 
-    # FIX: change this to repo method
-    created = await session.execute(select(Department))
-    departments = created.scalars().all()
+    departments = await repository.get_all()
 
     assert len(departments) == len(data)
 
