@@ -5,8 +5,16 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.organization_api.data.db_connection import DB_SYNC_URL
 from src.organization_api.data.sql_models import Base
+from src.organization_api.config import env
+
+DB_SYNC_URL = (
+    f"postgresql+psycopg://{env.postgres_user}:"
+    f"{env.postgres_password}"
+    f"@{env.postgres_host}:{env.postgres_port}/{env.postgres_db}"
+)
+
+print("DB_SYNC_URL =", DB_SYNC_URL)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +29,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
