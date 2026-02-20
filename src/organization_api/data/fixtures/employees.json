@@ -1,0 +1,221 @@
+[
+  {
+    "id": 1,
+    "department_id": 1,
+    "full_name": "Alice Morgan",
+    "position": "Director",
+    "hired_at": "2018-03-15"
+  },
+  {
+    "id": 2,
+    "department_id": 1,
+    "full_name": "Brian Scott",
+    "position": "Senior Analyst",
+    "hired_at": "2019-06-01"
+  },
+  {
+    "id": 3,
+    "department_id": 1,
+    "full_name": "Clara Johnson",
+    "position": "Coordinator",
+    "hired_at": "2020-09-20"
+  },
+
+  {
+    "id": 4,
+    "department_id": 2,
+    "full_name": "David Lee",
+    "position": "Operations Manager",
+    "hired_at": "2017-02-10"
+  },
+  {
+    "id": 5,
+    "department_id": 2,
+    "full_name": "Eva Brown",
+    "position": "Supervisor",
+    "hired_at": "2019-11-11"
+  },
+  {
+    "id": 6,
+    "department_id": 2,
+    "full_name": "Frank Wilson",
+    "position": "Specialist",
+    "hired_at": "2021-01-05"
+  },
+
+  {
+    "id": 7,
+    "department_id": 3,
+    "full_name": "Grace Hall",
+    "position": "Logistics Lead",
+    "hired_at": "2016-07-22"
+  },
+  {
+    "id": 8,
+    "department_id": 3,
+    "full_name": "Henry Young",
+    "position": "Planner",
+    "hired_at": "2020-12-01"
+  },
+  {
+    "id": 9,
+    "department_id": 3,
+    "full_name": "Isla King",
+    "position": "Coordinator",
+    "hired_at": "2022-04-18"
+  },
+
+  {
+    "id": 10,
+    "department_id": 4,
+    "full_name": "Jack Wright",
+    "position": "Procurement Manager",
+    "hired_at": "2015-05-30"
+  },
+  {
+    "id": 11,
+    "department_id": 4,
+    "full_name": "Karen Lopez",
+    "position": "Buyer",
+    "hired_at": "2018-10-12"
+  },
+  {
+    "id": 12,
+    "department_id": 4,
+    "full_name": "Leo Martinez",
+    "position": "Analyst",
+    "hired_at": "2021-08-09"
+  },
+
+  {
+    "id": 13,
+    "department_id": 5,
+    "full_name": "Mia Walker",
+    "position": "Vendor Manager",
+    "hired_at": "2014-03-17"
+  },
+  {
+    "id": 14,
+    "department_id": 5,
+    "full_name": "Noah Allen",
+    "position": "Contract Specialist",
+    "hired_at": "2019-02-25"
+  },
+  {
+    "id": 15,
+    "department_id": 5,
+    "full_name": "Olivia Scott",
+    "position": "Coordinator",
+    "hired_at": "2022-06-14"
+  },
+
+  {
+    "id": 16,
+    "department_id": 6,
+    "full_name": "Paul Adams",
+    "position": "CTO",
+    "hired_at": "2013-01-10"
+  },
+  {
+    "id": 17,
+    "department_id": 6,
+    "full_name": "Quinn Baker",
+    "position": "Architect",
+    "hired_at": "2017-09-03"
+  },
+  {
+    "id": 18,
+    "department_id": 6,
+    "full_name": "Rachel Carter",
+    "position": "Administrator",
+    "hired_at": "2021-12-12"
+  },
+
+  {
+    "id": 19,
+    "department_id": 7,
+    "full_name": "Samuel Perez",
+    "position": "Engineering Manager",
+    "hired_at": "2016-04-01"
+  },
+  {
+    "id": 20,
+    "department_id": 7,
+    "full_name": "Tina Roberts",
+    "position": "Senior Engineer",
+    "hired_at": "2018-07-19"
+  },
+  {
+    "id": 21,
+    "department_id": 7,
+    "full_name": "Umar Khan",
+    "position": "Engineer",
+    "hired_at": "2022-03-08"
+  },
+
+  {
+    "id": 22,
+    "department_id": 8,
+    "full_name": "Victoria Green",
+    "position": "Platform Lead",
+    "hired_at": "2015-09-14"
+  },
+  {
+    "id": 23,
+    "department_id": 8,
+    "full_name": "William Hill",
+    "position": "Backend Engineer",
+    "hired_at": "2020-01-27"
+  },
+  {
+    "id": 24,
+    "department_id": 8,
+    "full_name": "Xenia Moore",
+    "position": "DevOps Engineer",
+    "hired_at": "2021-05-05"
+  },
+
+  {
+    "id": 25,
+    "department_id": 9,
+    "full_name": "Yusuf Clark",
+    "position": "Infrastructure Lead",
+    "hired_at": "2014-11-11"
+  },
+  {
+    "id": 26,
+    "department_id": 9,
+    "full_name": "Zara Lewis",
+    "position": "Systems Engineer",
+    "hired_at": "2019-08-23"
+  },
+  {
+    "id": 27,
+    "department_id": 9,
+    "full_name": "Aaron Young",
+    "position": "Cloud Engineer",
+    "hired_at": "2022-02-02"
+  },
+
+  {
+    "id": 28,
+    "department_id": 10,
+    "full_name": "Bella Turner",
+    "position": "QA Manager",
+    "hired_at": "2016-06-06"
+  },
+  {
+    "id": 29,
+    "department_id": 10,
+    "full_name": "Carlos Rivera",
+    "position": "QA Engineer",
+    "hired_at": "2020-10-10"
+  },
+  {
+    "id": 30,
+    "department_id": 10,
+    "full_name": "Diana Evans",
+    "position": "Automation Engineer",
+    "hired_at": "2023-01-15"
+  }
+]

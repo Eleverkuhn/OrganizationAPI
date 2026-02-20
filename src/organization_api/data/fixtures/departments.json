@@ -1,0 +1,13 @@
+[
+  { "id": 1, "name": "Corporate", "parent_id": null },
+  { "id": 2, "name": "Operations", "parent_id": 1 },
+  { "id": 3, "name": "Logistics", "parent_id": 2 },
+  { "id": 4, "name": "Procurement", "parent_id": 3 },
+  { "id": 5, "name": "Vendor Management", "parent_id": 4 },
+
+  { "id": 6, "name": "Technology", "parent_id": null },
+  { "id": 7, "name": "Engineering", "parent_id": 6 },
+  { "id": 8, "name": "Platform Team", "parent_id": 7 },
+  { "id": 9, "name": "Infrastructure", "parent_id": 7 },
+  { "id": 10, "name": "QA Team", "parent_id": 6 }
+]
