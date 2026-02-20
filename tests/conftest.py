@@ -3,6 +3,7 @@ from typing import Callable
 
 import pytest
 import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -10,8 +11,10 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
+from main import app
 from config import env
 from data.sql_models import Base
+from data.db_connection import get_async_session
 
 TEST_DB_URL = (
     f"postgresql+asyncpg://{env.postgres_user}:"
@@ -45,3 +48,20 @@ async def run_sync(engine: AsyncEngine, cmd: Callable) -> None:
 async def session(create_tables: AsyncGenerator) -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+def override_session(session):
+    async def override():
+        yield session
+
+    app.dependency_overrides[get_async_session] = override
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def client():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
