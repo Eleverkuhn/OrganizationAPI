@@ -15,6 +15,7 @@ class Env(BaseSettings):
     postgres_port: str
 
     postgres_test_db: str
+    postgres_test_host: str
     postgres_test_port: str
 
     fastapi_host: str
