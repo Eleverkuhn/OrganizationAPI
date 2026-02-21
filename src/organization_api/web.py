@@ -1,9 +1,11 @@
 from loguru import logger
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import DepartmentIn, DepartmentOut
 from services import service_create_department
 from data.sql_models import Department
+from data.db_connection import get_async_session
 
 router = APIRouter()
 
@@ -20,6 +22,13 @@ async def main():
     "/departments", name="create_department", status_code=status.HTTP_201_CREATED
 )
 async def create_department(
-    data: DepartmentIn, department: Department = Depends(service_create_department)
+    data: DepartmentIn,
+    session: AsyncSession = Depends(get_async_session),
 ) -> DepartmentOut:
-    return department
+    try:
+        response = await service_create_department(data, session)
+    except ValueError as exc:
+        msg = str(exc)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+    else:
+        return response
