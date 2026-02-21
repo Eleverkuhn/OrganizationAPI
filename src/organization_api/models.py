@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -32,8 +32,20 @@ class DepartmentOut(DepartmentBase):
 
 
 class EmployeeBase(BaseModel):
+    department_id: int
+    full_name: str = Field(
+        min_length=DefaultField.MIN_TITLE_LEN, max_length=DefaultField.MAX_TITLE_LEN
+    )
+    position: str = Field(
+        min_length=DefaultField.MIN_TITLE_LEN, max_length=DefaultField.MAX_TITLE_LEN
+    )
+    hired_at: date | None = None
+
+
+class EmployeeIn(EmployeeBase):
     pass
 
 
 class EmployeeOut(EmployeeBase):
-    pass
+    id: int
+    created_at: datetime

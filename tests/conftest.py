@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from loguru import logger
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -16,10 +17,13 @@ from main import app
 from config import env
 from data.seed_db import FIXTURE_DIR, read_fixture
 from data.repositories import DepartmentRepository
-from data.sql_models import Base
+from data.sql_models import Base, Department
 from data.db_connection import get_async_session
 
-DepartmentData: TypeAlias = list[dict[str, str | int | None]]
+DepartmentData: TypeAlias = list[
+    dict[str, str | int | None]
+]  # FIX: merge this into a single typing alias
+EmployeesData: TypeAlias = list[dict[str, str | int | None]]
 
 TEST_DB_URL = (
     f"postgresql+asyncpg://{env.postgres_user}:"
@@ -74,14 +78,44 @@ async def client():
 
 @pytest.fixture
 def departments_fixture() -> Path:
+    # FIX: merge this into a single parametrized fixture with the fixture below
     return FIXTURE_DIR / "departments.json"
 
 
 @pytest.fixture
+def employees_fixture() -> Path:
+    return FIXTURE_DIR / "employees.json"
+
+
+@pytest.fixture
 def departments_data(departments_fixture) -> DepartmentData:
+    # FIX: merge this into a single parametrized fixture with the fixture below
     return read_fixture(departments_fixture)
+
+
+@pytest.fixture
+def employees_data(
+    request: pytest.FixtureRequest, employees_fixture: Path
+) -> EmployeesData:
+    employees = read_fixture(employees_fixture)
+    if request.param:
+        return employees[: request.param]
+    return employees
 
 
 @pytest.fixture
 def department_repository(session: AsyncSession) -> DepartmentRepository:
     return DepartmentRepository(session)
+
+
+@pytest_asyncio.fixture
+async def created_departments(
+    request: pytest.FixtureRequest,
+    departments_data: DepartmentData,
+    department_repository: DepartmentRepository,
+) -> list[Department]:
+    departments = departments_data[
+        : request.param
+    ]  # FIX: move this to `departments_data`
+    created = [await department_repository.create(dep) for dep in departments]
+    return created

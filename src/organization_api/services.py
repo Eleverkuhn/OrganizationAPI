@@ -7,10 +7,10 @@
 from loguru import logger
 from fastapi import Depends
 
-from models import DepartmentIn
+from models import DepartmentIn, EmployeeIn
 from validators import validate_department_creation_data
-from data.repositories import DepartmentRepository
-from data.sql_models import Department
+from data.repositories import DepartmentRepository, EmployeeRepository
+from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
 
 
@@ -24,3 +24,15 @@ async def service_create_department(
     logger.info(f"Created department '{department.name}' with ID `{department.id}")
 
     return department
+
+
+async def service_create_employee(
+    data: EmployeeIn, session=Depends(get_async_session)
+) -> Employee:
+    repository = EmployeeRepository(session)
+    employee = await repository.create(data.model_dump())
+    logger.debug(employee)
+
+    logger.info(f"Created employee {employee.full_name} with ID {employee.id}")
+
+    return employee

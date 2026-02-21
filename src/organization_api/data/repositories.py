@@ -1,12 +1,12 @@
 from collections.abc import Sequence, Mapping
-from typing import Any, Generic, TypeVar, TypeAlias, override
+from typing import Generic, TypeVar, TypeAlias, override
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from data.sql_models import Base, Department, Employee
+from data.sql_models import Department, Employee
 
 T = TypeVar("T")
 DepartmentCreation: TypeAlias = Mapping[str, str | int]
@@ -35,6 +35,11 @@ class BaseRepository(Generic[T]):
     async def _refresh(self, entry: T) -> None:
         await self.session.commit()
         await self.session.refresh(entry)
+
+    async def _get_single(self, statement: Select) -> T | None:
+        result = await self.session.execute(statement)
+        entry = result.scalar_one_or_none()
+        return entry
 
 
 class DepartmentRepository(BaseRepository):
@@ -70,14 +75,14 @@ class DepartmentRepository(BaseRepository):
         department = await self._get_single(statement)
         return department
 
-    async def _get_single(self, statement: Select) -> Department | None:
-        result = await self.session.execute(statement)
-        department = result.scalar_one_or_none()
-        return department
-
 
 class EmployeeRepository(BaseRepository):
     model = Employee
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    async def get(self, id: int) -> Employee | None:
+        statement = select(self.model).where(self.model.id == id)
+        employee = await self._get_single(statement)
+        return employee
