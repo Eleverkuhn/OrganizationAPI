@@ -38,10 +38,12 @@ class Department(BaseMixin, Base):
         Integer, ForeignKey("departments.id", ondelete="CASCADE"), nullable=True
     )
 
+    parent: Mapped["Department"] = relationship(
+        "Department", remote_side="Department.id", back_populates="children"
+    )
     children: Mapped[list["Department"]] = relationship(
         "Department",
-        remote_side="Department.id",
-        backref="parent",
+        back_populates="parent",
         cascade="all, delete",
         passive_deletes=True,
     )
@@ -52,6 +54,9 @@ class Department(BaseMixin, Base):
             name="name_length_check",
         ),
     )
+
+    def __repr__(self) -> str:
+        return f"<Department id={self.id} name={self.name} parent_id={self.parent_id}>"
 
 
 class Employee(BaseMixin, Base):
