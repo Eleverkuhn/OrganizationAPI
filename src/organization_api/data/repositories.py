@@ -36,10 +36,6 @@ class BaseRepository(Generic[T]):
         await self.session.commit()
         await self.session.refresh(entry)
 
-    @staticmethod
-    def dump(entry: Base) -> dict[str, Any]:
-        return {col.name: getattr(entry, col.name) for col in entry.__table__.columns}
-
 
 class DepartmentRepository(BaseRepository):
     model = Department
