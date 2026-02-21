@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
-from typing import Callable
+from typing import Callable, TypeAlias
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -13,13 +14,17 @@ from sqlalchemy.ext.asyncio import (
 
 from main import app
 from config import env
+from data.seed_db import FIXTURE_DIR, read_fixture
+from data.repositories import DepartmentRepository
 from data.sql_models import Base
 from data.db_connection import get_async_session
+
+DepartmentData: TypeAlias = list[dict[str, str | int | None]]
 
 TEST_DB_URL = (
     f"postgresql+asyncpg://{env.postgres_user}:"
     f"{env.postgres_password}"
-    f"@{env.postgres_host}:{env.postgres_test_port}/{env.postgres_test_db}"
+    f"@{env.postgres_test_host}:{env.postgres_test_port}/{env.postgres_test_db}"
 )
 
 engine = create_async_engine(
@@ -65,3 +70,18 @@ async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture
+def departments_fixture() -> Path:
+    return FIXTURE_DIR / "departments.json"
+
+
+@pytest.fixture
+def departments_data(departments_fixture) -> DepartmentData:
+    return read_fixture(departments_fixture)
+
+
+@pytest.fixture
+def department_repository(session: AsyncSession) -> DepartmentRepository:
+    return DepartmentRepository(session)
