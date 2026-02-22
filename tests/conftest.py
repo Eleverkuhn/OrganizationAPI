@@ -17,7 +17,7 @@ from main import app
 from config import env
 from data.seed_db import FIXTURE_DIR, read_fixture
 from data.repositories import DepartmentRepository, EmployeeRepository
-from data.sql_models import Base, Department
+from data.sql_models import Base, Department, Employee
 from data.db_connection import get_async_session
 
 FixtureContent: TypeAlias = list[dict[str, str | int | None]]
@@ -123,8 +123,15 @@ async def created_departments(
     departments_data: FixtureContent,
     department_repository: DepartmentRepository,
 ) -> list[Department]:
-    created = [
-        await department_repository.create(department)
-        for department in departments_data
-    ]
-    return created
+    return await bulk_create(department_repository, departments_data)
+
+
+@pytest_asyncio.fixture
+async def created_employees(
+    employees_data: FixtureContent, employee_repository: EmployeeRepository
+) -> list[Employee]:
+    return await bulk_create(employee_repository, employees_data)
+
+
+async def bulk_create(repository, data: FixtureContent):
+    return [await repository.create(entry) for entry in data]
