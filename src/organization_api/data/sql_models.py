@@ -9,15 +9,23 @@ from sqlalchemy import (
     ForeignKey,
     func,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    attributes,
+)
+from sqlalchemy.ext.asyncio import AsyncAttrs
 
 
 class DefaultField:
     MIN_TITLE_LEN = 1
     MAX_TITLE_LEN = 200
+    MAX_DEPTH = 5
 
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
@@ -44,8 +52,16 @@ class Department(BaseMixin, Base):
     children: Mapped[list["Department"]] = relationship(
         "Department",
         back_populates="parent",
+        lazy="selectin",
         cascade="all, delete",
         passive_deletes=True,
+    )
+    employees: Mapped[list["Employee"]] = relationship(
+        "Employee",
+        back_populates="department",
+        lazy="selectin",
+        join_depth=DefaultField.MAX_DEPTH,
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (
@@ -73,7 +89,9 @@ class Employee(BaseMixin, Base):
     )
     hired_at: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    department: Mapped["Department"] = relationship("Department", backref="employees")
+    department: Mapped["Department"] = relationship(
+        "Department", back_populates="employees"
+    )
 
     __table_args__ = (
         CheckConstraint(
