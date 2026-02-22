@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from main import app
+from data.seed_db import check_date_fields
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department
 from tests.conftest import FixtureContent
@@ -81,5 +82,23 @@ async def test_create_employee_returns_404_for_non_existent_department(
 
 
 @pytest.mark.asyncio
-async def test_get_departments(client: AsyncClient) -> None:
-    pass
+async def test_get_department(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    employees_data: FixtureContent,
+    department_repository: DepartmentRepository,
+    employee_repository: EmployeeRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    check_date_fields(employees_data)
+    await employee_repository.bulk_create(employees_data)
+    logger.debug(await employee_repository.get_all())
+
+    params = {"depth": 1}
+
+    response = await client.get(app.url_path_for("get_department", id=1), params=params)
+    assert response.status_code == status.HTTP_200_OK
+
+    content = response.json()
+    logger.debug(content)
+    logger.debug("A")

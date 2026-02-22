@@ -6,8 +6,9 @@
 
 from loguru import logger
 from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import DepartmentIn, EmployeeIn
+from models import DepartmentIn, DepartmentOut, EmployeeIn, DepartmentGetData
 from validators import validate_department_creation_data
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department, Employee
@@ -36,3 +37,11 @@ async def service_create_employee(
     logger.info(f"Created employee {employee.full_name} with ID {employee.id}")
 
     return employee
+
+
+async def service_get_department(
+    data: DepartmentGetData, session: AsyncSession
+) -> Department | None:
+    repository = DepartmentRepository(session)
+    department = await repository.get_recursively(**data.model_dump())
+    return department

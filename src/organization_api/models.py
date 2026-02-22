@@ -31,6 +31,12 @@ class DepartmentOut(DepartmentBase):
     model_config = {"from_attributes": True}
 
 
+class DepartmentGetData(BaseModel):
+    id: int
+    depth: int
+    include_employees: bool
+
+
 class EmployeeBase(BaseModel):
     department_id: int
     full_name: str = Field(

@@ -1,10 +1,19 @@
-from os import stat
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import DepartmentIn, DepartmentOut, EmployeeIn, EmployeeOut
-from services import service_create_department, service_create_employee
+from models import (
+    DepartmentIn,
+    DepartmentOut,
+    EmployeeIn,
+    EmployeeOut,
+    DepartmentGetData,
+)
+from services import (
+    service_create_department,
+    service_create_employee,
+    service_get_department,
+)
 from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
 
@@ -42,3 +51,15 @@ async def create_employee(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     else:
         return employee
+
+
+@router.get("/{id}", name="get_department", status_code=status.HTTP_200_OK)
+async def get_department(
+    id: int,
+    depth: int = 1,
+    include_employees: bool = True,
+    session: AsyncSession = Depends(get_async_session),
+) -> DepartmentOut:
+    data = DepartmentGetData(id=id, depth=depth, include_employees=include_employees)
+    department = await service_get_department(data, session)
+    return department

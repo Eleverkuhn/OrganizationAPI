@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import (
 
 from main import app
 from config import env
-from data.seed_db import FIXTURE_DIR, read_fixture
+from data.seed_db import FIXTURE_DIR, read_fixture, check_date_fields
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Base, Department, Employee
 from data.db_connection import get_async_session
@@ -134,4 +134,5 @@ async def created_employees(
 
 
 async def bulk_create(repository, data: FixtureContent):
+    check_date_fields(data)
     return [await repository.create(entry) for entry in data]
