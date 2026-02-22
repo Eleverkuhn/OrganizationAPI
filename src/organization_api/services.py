@@ -60,7 +60,9 @@ class RecursiveDepartmentLoader:
 
     def _serialize_child(self, department: Department) -> DepartmentOut:
         department_dumped = self.department_repository.dump(department)
+
         employees_serialized = self._serialize_employees(department.employees)
+
         department_serialized = DepartmentOut(
             **department_dumped, employees=employees_serialized
         )
@@ -90,7 +92,10 @@ class RecursiveDepartmentLoader:
         self, department: Department, children: list[DepartmentOut] | None
     ) -> DepartmentOut:
         department_dumped = self.department_repository.dump(department)
-        department_serialized = DepartmentOut(**department_dumped, children=children)
+        employees_serialized = self._serialize_employees((department.employees))
+        department_serialized = DepartmentOut(
+            **department_dumped, children=children, employees=employees_serialized
+        )
         return department_serialized
 
 
