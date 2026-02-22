@@ -62,4 +62,7 @@ async def get_department(
 ) -> DepartmentOut:
     data = DepartmentGetData(id=id, depth=depth, include_employees=include_employees)
     department = await service_get_department(data, session)
+    if not department:
+        msg = "Department does not exist"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     return department

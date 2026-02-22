@@ -92,7 +92,6 @@ async def test_get_department(
     await department_repository.bulk_create(departments_data)
     check_date_fields(employees_data)
     await employee_repository.bulk_create(employees_data)
-    logger.debug(await employee_repository.get_all())
 
     params = {"depth": 1}
 
@@ -100,5 +99,11 @@ async def test_get_department(
     assert response.status_code == status.HTTP_200_OK
 
     content = response.json()
-    logger.debug(content)
-    logger.debug("A")
+    assert content
+
+
+@pytest.mark.asyncio
+async def test_get_department_raises_404_if_does_not_exist(client: AsyncClient) -> None:
+    params = {"depth": 1}
+    response = await client.get(app.url_path_for("get_department", id=1), params=params)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
