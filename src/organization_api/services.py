@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models import (
     DepartmentIn,
     DepartmentOut,
+    DepartmentChange,
     EmployeeIn,
     EmployeeOut,
     DepartmentGetData,
@@ -53,7 +54,7 @@ class RecursiveDepartmentLoader:
 
     async def _get_department(self, id) -> Department | None:
         if self.include_employees:
-            department = await self.department_repository.get(id)
+            department = await self.department_repository.get_with_employees(id)
         else:
             department = await self.department_repository.get_with_children(id)
         return department
@@ -128,4 +129,12 @@ async def service_get_department(
 ) -> DepartmentOut | None:
     loader = RecursiveDepartmentLoader(data.include_employees, session)
     department = await loader.exec(data.id, data.depth)
+    return department
+
+
+async def service_change_department(
+    data: DepartmentChange, session: AsyncSession
+) -> Department | None:
+    repository = DepartmentRepository(session)
+    department = repository.change(data.model_dump())
     return department

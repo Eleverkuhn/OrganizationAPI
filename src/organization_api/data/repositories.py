@@ -17,6 +17,11 @@ class BaseRepository(Generic[T]):
         self.session = session
         self.model = model
 
+    async def get(self, id: int) -> T | None:
+        statement = select(self.model).where(self.model.id == id)
+        entry = await self._get_single(statement)
+        return entry
+
     async def get_all(self) -> list[T]:
         entries = await self.session.execute(select(self.model))
         result = list(entries.scalars().all())
@@ -67,9 +72,7 @@ class DepartmentRepository(BaseRepository):
         department = await self._get_single(statement)
         return department
 
-    async def get(
-        self, id: int
-    ) -> Department | None:  # FIX: rename to 'get_with_employees'
+    async def get_with_employees(self, id: int) -> Department | None:
         statement = (
             select(self.model)
             .options(
@@ -81,14 +84,12 @@ class DepartmentRepository(BaseRepository):
         department = await self._get_single(statement)
         return department
 
+    async def change(self, id: int, data: DepartmentCreation) -> Department | None:
+        pass
+
 
 class EmployeeRepository(BaseRepository):
     model = Employee
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
-
-    async def get(self, id: int) -> Employee | None:
-        statement = select(self.model).where(self.model.id == id)
-        employee = await self._get_single(statement)
-        return employee
