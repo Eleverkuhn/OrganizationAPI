@@ -58,6 +58,7 @@ class Department(BaseMixin, Base):
     )
     employees: Mapped[list["Employee"]] = relationship(
         "Employee",
+        order_by="Employee.full_name",
         back_populates="department",
         lazy="selectin",
         join_depth=DefaultField.MAX_DEPTH,
