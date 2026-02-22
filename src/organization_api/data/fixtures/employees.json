@@ -2,14 +2,14 @@
   {
     "id": 1,
     "department_id": 1,
-    "full_name": "Alice Morgan",
+    "full_name": "Brian Scott",
     "position": "Director",
     "hired_at": "2018-03-15"
   },
   {
     "id": 2,
     "department_id": 1,
-    "full_name": "Brian Scott",
+    "full_name": "Alice Morgan",
     "position": "Senior Analyst",
     "hired_at": "2019-06-01"
   },
