@@ -107,3 +107,13 @@ async def test_get_department_raises_404_if_does_not_exist(client: AsyncClient) 
     params = {"depth": 1}
     response = await client.get(app.url_path_for("get_department", id=1), params=params)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize("depth", [0, 6])
+@pytest.mark.asyncio
+async def test_get_department_does_not_allow_to_set_invalid_recursion_depth(
+    client: AsyncClient, depth: int
+) -> None:
+    params = {"depth": depth}
+    response = await client.get(app.url_path_for("get_department", id=1), params=params)
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

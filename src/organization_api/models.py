@@ -33,7 +33,7 @@ class DepartmentOut(DepartmentBase):
 
 class DepartmentGetData(BaseModel):
     id: int
-    depth: int
+    depth: int = Field(ge=1, le=DefaultField.MAX_DEPTH)
     include_employees: bool
 
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -60,9 +61,18 @@ async def get_department(
     include_employees: bool = True,
     session: AsyncSession = Depends(get_async_session),
 ) -> DepartmentOut:
-    data = DepartmentGetData(id=id, depth=depth, include_employees=include_employees)
-    department = await service_get_department(data, session)
-    if not department:
-        msg = "Department does not exist"
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
-    return department
+    try:
+        data = DepartmentGetData(
+            id=id, depth=depth, include_employees=include_employees
+        )
+    except ValidationError:
+        msg = "Provide valid query params"
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=msg
+        )
+    else:
+        department = await service_get_department(data, session)
+        if not department:
+            msg = "Department does not exist"
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+        return department
