@@ -93,12 +93,13 @@ async def test_get_department(
     check_date_fields(employees_data)
     await employee_repository.bulk_create(employees_data)
 
-    params = {"depth": 1}
+    params = {"depth": 5}
 
     response = await client.get(app.url_path_for("get_department", id=1), params=params)
     assert response.status_code == status.HTTP_200_OK
 
     content = response.json()
+    logger.debug(content)
     assert content
 
 
@@ -117,3 +118,89 @@ async def test_get_department_does_not_allow_to_set_invalid_recursion_depth(
     params = {"depth": depth}
     response = await client.get(app.url_path_for("get_department", id=1), params=params)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+@pytest.mark.asyncio
+async def test_change_department_changes_parent_id(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    department_repository: DepartmentRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    id = 2
+    new_parent_id = 6
+    department = await department_repository.get(id)
+    assert department.parent_id == 1
+
+    data = {"parent_id": new_parent_id}
+
+    response = await client.patch(
+        app.url_path_for("change_department", id=id), json=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    assert department.parent_id == new_parent_id
+
+
+@pytest.mark.asyncio
+async def test_change_department_changes_name(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    department_repository: DepartmentRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    department_data = departments_data[0]
+    department = await department_repository.get(department_data["id"])
+    assert department.name == department_data["name"]
+
+    changed_name = "changed_name"
+    data = {"name": changed_name}
+    response = await client.patch(
+        app.url_path_for("change_department", id=department_data["id"]), json=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    assert department.name == changed_name
+
+
+@pytest.mark.asyncio
+async def test_change_department_raises_400_if_id_and_parent_id_are_eq(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    department_repository: DepartmentRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    department_data = departments_data[0]
+    data = {"parent_id": department_data["id"]}
+
+    response = await client.patch(
+        app.url_path_for("change_department", id=department_data["id"]), json=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.asyncio
+async def test_change_department_raies_404_if_does_not_exist(
+    client: AsyncClient,
+) -> None:
+    data = {"parent_id": 1}
+    response = await client.patch(
+        app.url_path_for("change_department", id=1), json=data
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize("departments_data", [1], indirect=True)
+@pytest.mark.asyncio
+async def test_change_department_raises_400_if_parent_id_does_not_exist(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    department_repository: DepartmentRepository,
+) -> None:
+    department = await department_repository.create(departments_data[0])
+    data = {"parent_id": 2}
+    response = await client.patch(
+        app.url_path_for("change_department", id=department.id), json=data
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND

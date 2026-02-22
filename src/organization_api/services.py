@@ -16,7 +16,10 @@ from models import (
     EmployeeOut,
     DepartmentGetData,
 )
-from validators import validate_department_creation_data
+from validators import (
+    validate_department_creation_data,
+    validate_department_change_data,
+)
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
@@ -133,8 +136,12 @@ async def service_get_department(
 
 
 async def service_change_department(
-    data: DepartmentChange, session: AsyncSession
-) -> Department | None:
+    id: int, data: DepartmentChange, session: AsyncSession
+) -> dict | None:
     repository = DepartmentRepository(session)
-    department = repository.change(data.model_dump())
-    return department
+    await validate_department_change_data(id, data, repository)
+
+    department = await repository.change(id, data.model_dump())
+    department_dumped = repository.dump(department)
+
+    return department_dumped

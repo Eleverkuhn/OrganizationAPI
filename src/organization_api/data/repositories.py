@@ -33,11 +33,11 @@ class BaseRepository(Generic[T]):
 
     async def create(self, data: Mapping) -> T:
         entry = self.model(**data)
-        self.session.add(entry)
-        await self._refresh(entry)
+        await self._add(entry)
         return entry
 
-    async def _refresh(self, entry: T) -> None:
+    async def _add(self, entry: T) -> None:
+        self.session.add(entry)
         await self.session.commit()
         await self.session.refresh(entry)
 
@@ -85,7 +85,26 @@ class DepartmentRepository(BaseRepository):
         return department
 
     async def change(self, id: int, data: DepartmentCreation) -> Department | None:
-        pass
+        department = await self.get(id)
+        if department:
+            await self._update(department, data)
+        return department
+
+    async def _update(self, department: Department, data: DepartmentCreation) -> None:
+        for field, value in data.items():
+            if hasattr(department, field) and value:
+                setattr(department, field, value)
+        await self._add(department)
+
+    async def _get_new_department_id(self) -> int:
+        """Используется в validators.validate_department_creation_data. Вычисляет значения следующего созданного ID"""
+        departments = await self.get_all()
+        if departments:
+            last_department = departments[len(departments) - 1]
+            new_department_id = last_department.id + 1
+        else:
+            new_department_id = 1
+        return new_department_id
 
 
 class EmployeeRepository(BaseRepository):

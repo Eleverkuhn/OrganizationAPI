@@ -1,5 +1,6 @@
 from loguru import logger
 
+from exceptions import DepartmentDoesNotExist
 from models import DepartmentIn, DepartmentChange
 from data.repositories import DepartmentRepository
 
@@ -7,9 +8,33 @@ from data.repositories import DepartmentRepository
 
 
 async def validate_department_change_data(
-    repository: DepartmentRepository, data: DepartmentChange
+    id: int, data: DepartmentChange, repository: DepartmentRepository
 ) -> None:
-    pass
+    await check_department_exists(id, repository)
+    if data.parent_id:
+        await check_department_exists(data.parent_id, repository)
+        check_ids_are_eq(id, data.parent_id)
+        await check_new_parent_id_belongs_to_a_child(id, data.parent_id, repository)
+
+
+async def check_department_exists(id: int, repository: DepartmentRepository) -> None:
+    logger.debug("inside func")
+    department = await repository.get(id)
+    if not department:
+        raise DepartmentDoesNotExist(f"Department with id {id} does not exist")
+
+
+async def check_new_parent_id_belongs_to_a_child(
+    id: int, new_parent_id: int, repository: DepartmentRepository
+) -> None:
+    department = await repository.get_with_children(id)
+
+    for child in department.children:
+        if new_parent_id == child.id:
+            raise ValueError("Department can not be a parent to itself")
+        await check_new_parent_id_belongs_to_a_child(
+            child.id, new_parent_id, repository
+        )
 
 
 async def validate_department_creation_data(

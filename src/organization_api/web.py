@@ -3,9 +3,11 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from exceptions import DepartmentDoesNotExist
 from models import (
     DepartmentIn,
     DepartmentOut,
+    DepartmentChange,
     EmployeeIn,
     EmployeeOut,
     DepartmentGetData,
@@ -14,6 +16,7 @@ from services import (
     service_create_department,
     service_create_employee,
     service_get_department,
+    service_change_department,
 )
 from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
@@ -61,6 +64,7 @@ async def get_department(
     include_employees: bool = True,
     session: AsyncSession = Depends(get_async_session),
 ) -> DepartmentOut:
+    # FIX:: Make this a single ValueError exception
     try:
         data = DepartmentGetData(
             id=id, depth=depth, include_employees=include_employees
@@ -75,4 +79,20 @@ async def get_department(
         if not department:
             msg = "Department does not exist"
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+        return department
+
+
+@router.patch("/{id}", name="change_department", status_code=status.HTTP_200_OK)
+async def change_department(
+    id: int, data: DepartmentChange, session: AsyncSession = Depends(get_async_session)
+) -> DepartmentOut:
+    try:
+        department = await service_change_department(id, data, session)
+    except ValueError as exc:
+        msg = str(exc)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+    except DepartmentDoesNotExist as exc:
+        msg = str(exc)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+    else:
         return department

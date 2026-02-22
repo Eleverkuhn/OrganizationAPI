@@ -22,6 +22,14 @@ class DepartmentIn(DepartmentBase):
     pass
 
 
+class DepartmentChange(DepartmentBase):
+    name: str | None = Field(
+        default=None,
+        min_length=DefaultField.MIN_TITLE_LEN,
+        max_length=DefaultField.MAX_TITLE_LEN,
+    )
+
+
 class DepartmentOut(DepartmentBase):
     id: int
     children: list["DepartmentOut"] | None = None

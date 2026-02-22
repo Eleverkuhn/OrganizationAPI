@@ -1,12 +1,9 @@
 import pytest
-from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import DepartmentGetData
 from data.seed_db import FIXTURE_DIR, read_fixture, seed_db, check_date_fields
 from data.repositories import BaseRepository, DepartmentRepository, EmployeeRepository
 from data.sql_models import Department
-from tests.conftest import FixtureContent
 
 
 @pytest.mark.asyncio
