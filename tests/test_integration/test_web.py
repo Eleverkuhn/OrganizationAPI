@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from main import app
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department
-from tests.conftest import DepartmentData, EmployeesData
+from tests.conftest import FixtureContent
 
 
 @pytest.mark.asyncio
@@ -24,7 +24,7 @@ async def test_create_department(client: AsyncClient, session: AsyncSession) -> 
 @pytest.mark.asyncio
 async def test_create_department_returns_400_if_name_is_not_unqiue(
     client: AsyncClient,
-    departments_data: DepartmentData,
+    departments_data: FixtureContent,
     department_repository: DepartmentRepository,
 ) -> None:
     for entry in departments_data[:2]:
@@ -45,7 +45,7 @@ async def test_create_department_returns_400_if_parent_id_eq_new_department_id(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.parametrize("created_departments", [1], indirect=True)
+@pytest.mark.parametrize("departments_data", [1], indirect=True)
 @pytest.mark.asyncio
 async def test_create_employee(
     client: AsyncClient, session: AsyncSession, created_departments: list[Department]
@@ -70,7 +70,7 @@ async def test_create_employee(
 @pytest.mark.parametrize("employees_data", [1], indirect=True)
 @pytest.mark.asyncio
 async def test_create_employee_returns_404_for_non_existent_department(
-    client: AsyncClient, employees_data: EmployeesData
+    client: AsyncClient, employees_data: FixtureContent
 ) -> None:
     employee = employees_data[0]
     employee.pop("id")
@@ -78,3 +78,8 @@ async def test_create_employee_returns_404_for_non_existent_department(
         app.url_path_for("create_employee", id=employee["department_id"]), json=employee
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_get_departments(client: AsyncClient) -> None:
+    pass

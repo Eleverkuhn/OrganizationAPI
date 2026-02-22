@@ -6,12 +6,12 @@ from validators import (
     check_parent_id_eq_new_department_id,
 )
 from data.repositories import DepartmentRepository
-from tests.conftest import DepartmentData
+from tests.conftest import FixtureContent
 
 
 @pytest.mark.asyncio
 async def test_check_name_is_unique_raises_value_error(
-    department_repository: DepartmentRepository, departments_data: DepartmentData
+    department_repository: DepartmentRepository, departments_data: FixtureContent
 ) -> None:
     _, existing_department = data = departments_data[:2]
     for entry in data:

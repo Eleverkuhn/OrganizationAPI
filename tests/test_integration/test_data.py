@@ -7,7 +7,9 @@ from data.sql_models import Department
 
 
 @pytest.mark.asyncio
-async def test_bulk_create(session: AsyncSession) -> None:
+async def test_bulk_create(
+    session: AsyncSession,
+) -> None:
     repository = BaseRepository(session, Department)
     fixture = FIXTURE_DIR / "departments.json"
     data = read_fixture(fixture)

@@ -16,14 +16,11 @@ from sqlalchemy.ext.asyncio import (
 from main import app
 from config import env
 from data.seed_db import FIXTURE_DIR, read_fixture
-from data.repositories import DepartmentRepository
+from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Base, Department
 from data.db_connection import get_async_session
 
-DepartmentData: TypeAlias = list[
-    dict[str, str | int | None]
-]  # FIX: merge this into a single typing alias
-EmployeesData: TypeAlias = list[dict[str, str | int | None]]
+FixtureContent: TypeAlias = list[dict[str, str | int | None]]
 
 TEST_DB_URL = (
     f"postgresql+asyncpg://{env.postgres_user}:"
@@ -78,7 +75,6 @@ async def client():
 
 @pytest.fixture
 def departments_fixture() -> Path:
-    # FIX: merge this into a single parametrized fixture with the fixture below
     return FIXTURE_DIR / "departments.json"
 
 
@@ -88,19 +84,28 @@ def employees_fixture() -> Path:
 
 
 @pytest.fixture
-def departments_data(departments_fixture) -> DepartmentData:
-    # FIX: merge this into a single parametrized fixture with the fixture below
-    return read_fixture(departments_fixture)
+def departments_data(
+    request: pytest.FixtureRequest, departments_fixture: Path
+) -> FixtureContent:
+    departments = read_fixture(departments_fixture)
+    return get_data(departments, request)
 
 
 @pytest.fixture
 def employees_data(
     request: pytest.FixtureRequest, employees_fixture: Path
-) -> EmployeesData:
+) -> FixtureContent:
     employees = read_fixture(employees_fixture)
-    if request.param:
-        return employees[: request.param]
-    return employees
+    return get_data(employees, request)
+
+
+def get_data(
+    fixture_content: FixtureContent, request: pytest.FixtureRequest
+) -> FixtureContent:
+    index = hasattr(request, "param")
+    if index:
+        return fixture_content[: request.param]
+    return fixture_content
 
 
 @pytest.fixture
@@ -108,14 +113,18 @@ def department_repository(session: AsyncSession) -> DepartmentRepository:
     return DepartmentRepository(session)
 
 
+@pytest.fixture
+def employee_repository(session: AsyncSession) -> EmployeeRepository:
+    return EmployeeRepository(session)
+
+
 @pytest_asyncio.fixture
 async def created_departments(
-    request: pytest.FixtureRequest,
-    departments_data: DepartmentData,
+    departments_data: FixtureContent,
     department_repository: DepartmentRepository,
 ) -> list[Department]:
-    departments = departments_data[
-        : request.param
-    ]  # FIX: move this to `departments_data`
-    created = [await department_repository.create(dep) for dep in departments]
+    created = [
+        await department_repository.create(department)
+        for department in departments_data
+    ]
     return created
