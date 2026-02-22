@@ -8,11 +8,90 @@ from loguru import logger
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import DepartmentIn, DepartmentOut, EmployeeIn, DepartmentGetData
+from models import (
+    DepartmentIn,
+    DepartmentOut,
+    EmployeeIn,
+    EmployeeOut,
+    DepartmentGetData,
+)
 from validators import validate_department_creation_data
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
+
+
+class RecursiveDepartmentLoader:
+    """
+    Я решил вынести рекурсивное получение подразделений из DepartmentRepository в отдельный класс, т.к. для рекурсивного
+    обхода требуется слишком много разных задач: обращения к бд, сериализация, проверки. Плюс здесь происходит оркестрация
+    двух разных репозиториев, и лучше вынести её на верхний уровень, а не давать одному репозиторию вызывать другой
+    """
+
+    def __init__(
+        self,
+        include_employees: bool,
+        session: AsyncSession = Depends(get_async_session),
+    ) -> None:
+        self.include_employees = include_employees
+        self.department_repository = DepartmentRepository(session)
+
+    async def exec(self, id: int, depth: int) -> DepartmentOut | None:
+        department = await self._get_department(id)
+
+        if not department:
+            return
+
+        if depth == 0:
+            return self._serialize_child(department)
+
+        children = await self._get_children(depth, department)  # Вызов рекурсии
+
+        result = self._serialize_result(department, children)
+
+        return result
+
+    async def _get_department(self, id) -> Department | None:
+        if self.include_employees:
+            department = await self.department_repository.get(id)
+        else:
+            department = await self.department_repository.get_with_children(id)
+        return department
+
+    def _serialize_child(self, department: Department) -> DepartmentOut:
+        department_dumped = self.department_repository.dump(department)
+        employees_serialized = self._serialize_employees(department.employees)
+        department_serialized = DepartmentOut(
+            **department_dumped, employees=employees_serialized
+        )
+        return department_serialized
+
+    def _serialize_employees(
+        self, employees: list[Employee] | None
+    ) -> list[EmployeeOut] | None:
+        if employees:
+            serialized = [
+                EmployeeOut(**EmployeeRepository.dump(employee))
+                for employee in employees
+            ]
+        else:
+            serialized = []
+        return serialized
+
+    async def _get_children(
+        self, depth: int, department: Department
+    ) -> list[DepartmentOut]:
+        children = [
+            await self.exec(child.id, depth - 1) for child in department.children
+        ]
+        return children
+
+    def _serialize_result(
+        self, department: Department, children: list[DepartmentOut] | None
+    ) -> DepartmentOut:
+        department_dumped = self.department_repository.dump(department)
+        department_serialized = DepartmentOut(**department_dumped, children=children)
+        return department_serialized
 
 
 async def service_create_department(
@@ -41,7 +120,7 @@ async def service_create_employee(
 
 async def service_get_department(
     data: DepartmentGetData, session: AsyncSession
-) -> Department | None:
-    repository = DepartmentRepository(session)
-    department = await repository.get_recursively(**data.model_dump())
+) -> DepartmentOut | None:
+    loader = RecursiveDepartmentLoader(data.include_employees, session)
+    department = await loader.exec(data.id, data.depth)
     return department
