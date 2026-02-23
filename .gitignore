@@ -9,9 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-# ENV
-.env
-
 # UV
 .python-version
 
