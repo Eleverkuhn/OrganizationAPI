@@ -47,8 +47,8 @@ class DepartmentGetData(BaseModel):
 
 class DepartmentDeleteData(BaseModel):
     id: int
-    mode: str  # TODO:: add validation
-    reassign_to_department_id: int | None = None  # TODO:: add validation
+    mode: str
+    reassign_to_department_id: int | None = None
 
     @field_validator("mode", mode="after")
     @classmethod
