@@ -13,6 +13,7 @@ from models import (
     DepartmentGetData,
     DepartmentDeleteData,
 )
+from validators import validate_department_delete_query_data
 from services import (
     service_create_department,
     service_create_employee,
@@ -109,17 +110,11 @@ async def delete_department(
     reassign_to_department_id: int | None = None,
     session: AsyncSession = Depends(get_async_session),
 ) -> None:
+    data = validate_department_delete_query_data(id, mode, reassign_to_department_id)
     try:
-        data = DepartmentDeleteData(
-            id=id, mode=mode, reassign_to_department_id=reassign_to_department_id
-        )
-    except ValidationError:
-        raise_unprocessable_content()
+        await service_delete_deparment(data, session)
+    except ValidationError as exc:
+        msg = str(exc)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
     else:
-        try:
-            await service_delete_deparment(data, session)
-        except ValidationError as exc:
-            msg = str(exc)
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-        else:
-            return
+        return

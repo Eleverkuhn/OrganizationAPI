@@ -1,10 +1,21 @@
-from loguru import logger
+from pydantic import ValidationError
 
-from exceptions import DepartmentDoesNotExist
-from models import DepartmentIn, DepartmentChange
+from exceptions import DepartmentDoesNotExist, raise_unprocessable_content
+from models import DepartmentIn, DepartmentChange, DepartmentDeleteData
 from data.repositories import DepartmentRepository
 
-# TODO: Rework this functions into a single class
+
+def validate_department_delete_query_data(
+    id: int, mode: str, reassign_to_department_id: int | None
+) -> DepartmentDeleteData:
+    try:
+        data = DepartmentDeleteData(
+            id=id, mode=mode, reassign_to_department_id=reassign_to_department_id
+        )
+    except ValidationError:
+        raise_unprocessable_content()
+    else:
+        return data
 
 
 async def validate_department_change_data(
@@ -18,7 +29,6 @@ async def validate_department_change_data(
 
 
 async def check_department_exists(id: int, repository: DepartmentRepository) -> None:
-    logger.debug("inside func")
     department = await repository.get(id)
     if not department:
         raise DepartmentDoesNotExist(f"Department with id {id} does not exist")
