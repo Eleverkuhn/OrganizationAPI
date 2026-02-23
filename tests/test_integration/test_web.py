@@ -253,3 +253,40 @@ async def test_delete_returns_422_if_reassign_with_no_id(client: AsyncClient) ->
         app.url_path_for("delete_department", id=1), params=params
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+@pytest.mark.parametrize("employees_data", [9], indirect=True)
+@pytest.mark.parametrize("departments_data", [3], indirect=True)
+@pytest.mark.asyncio
+async def test_delete_department_in_reassign_mode(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    employees_data: FixtureContent,
+    department_repository: DepartmentRepository,
+    employee_repository: EmployeeRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    check_date_fields(employees_data)
+    await employee_repository.bulk_create(employees_data)
+
+    id_to_delete = 2
+    reassign_id = 1
+    params = {"mode": "reassign", "reassign_to_department_id": reassign_id}
+
+    department_to_delete = await department_repository.get_with_employees(id_to_delete)
+    children_of_deleted = department_to_delete.children
+    emoployees_of_deleted = department_to_delete.employees
+
+    response = await client.delete(
+        app.url_path_for("delete_department", id=id_to_delete), params=params
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    deleted_department = await department_repository.get(id_to_delete)
+    assert not deleted_department
+
+    for child in children_of_deleted:
+        assert child.parent_id == reassign_id
+
+    for employee in emoployees_of_deleted:
+        assert employee.department_id == reassign_id

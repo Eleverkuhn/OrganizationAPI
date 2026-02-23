@@ -57,8 +57,34 @@ class DepartmentRepository(BaseRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def reassign_delete(self, id: int, reassign_id: int) -> None:
+        department = await self.get_with_employees(id)
+
+        if department.children:
+            await self._reassign_children(department.children, reassign_id)
+
+        if department.employees:
+            await self._reassign_employees(department.employees, reassign_id)
+
+        await self._delete(department)
+
+    async def _reassign_children(
+        self, children: list[Department], reassign_id: int
+    ) -> None:
+        for child in children:
+            child.parent_id = reassign_id
+            await self._add(child)
+
+    async def _reassign_employees(self, employees: list[Employee], reassign_id) -> None:
+        for employee in employees:
+            employee.department_id = reassign_id
+            await self._add(employee)
+
     async def cascade_delete(self, id: int) -> None:
         department = await self.get(id)
+        await self._delete(department)
+
+    async def _delete(self, department: Department) -> None:
         await self.session.delete(department)
         await self.session.commit()
 

@@ -154,6 +154,12 @@ async def service_delete_deparment(
 ) -> None:
     repository = DepartmentRepository(session)
     await check_department_exists(data.id, repository)
+
     if data.mode == "cascade":
         await repository.cascade_delete(data.id)
         logger.info(f"Casacde delition of a department with ID: {data.id}")
+
+    else:  # Всего два метода удаления
+        await check_department_exists(data.reassign_to_department_id, repository)
+        await repository.reassign_delete(data.id, data.reassign_to_department_id)
+        logger.info(f"Reassign delete of a deparment with ID: {data.id}")
