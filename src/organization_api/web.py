@@ -3,17 +3,18 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from exceptions import DepartmentDoesNotExist, raise_unprocessable_content
+from exceptions import DepartmentDoesNotExist
 from models import (
     DepartmentIn,
     DepartmentOut,
     DepartmentChange,
     EmployeeIn,
     EmployeeOut,
-    DepartmentGetData,
-    DepartmentDeleteData,
 )
-from validators import validate_department_delete_query_data
+from validators import (
+    validate_department_get_query_data,
+    validate_department_delete_query_data,
+)
 from services import (
     service_create_department,
     service_create_employee,
@@ -67,21 +68,13 @@ async def get_department(
     include_employees: bool = True,
     session: AsyncSession = Depends(get_async_session),
 ) -> DepartmentOut:
-    # FIX:: Make this a single ValueError exception
+    data = validate_department_get_query_data(id, depth, include_employees)
     try:
-        data = DepartmentGetData(
-            id=id, depth=depth, include_employees=include_employees
-        )
-    except ValidationError:
-        msg = "Provide valid query params"
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=msg
-        )
-    else:
         department = await service_get_department(data, session)
-        if not department:
-            msg = "Department does not exist"
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+    except DepartmentDoesNotExist as exc:
+        msg = str(exc)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+    else:
         return department
 
 

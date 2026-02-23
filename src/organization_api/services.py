@@ -131,7 +131,10 @@ async def service_create_employee(
 
 async def service_get_department(
     data: DepartmentGetData, session: AsyncSession
-) -> DepartmentOut | None:
+) -> DepartmentOut:
+    repository = DepartmentRepository(session)
+    await check_department_exists(data.id, repository)
+
     loader = RecursiveDepartmentLoader(data.include_employees, session)
     department = await loader.exec(data.id, data.depth)
     return department

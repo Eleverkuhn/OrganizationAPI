@@ -1,7 +1,12 @@
 from pydantic import ValidationError
 
 from exceptions import DepartmentDoesNotExist, raise_unprocessable_content
-from models import DepartmentIn, DepartmentChange, DepartmentDeleteData
+from models import (
+    DepartmentIn,
+    DepartmentChange,
+    DepartmentGetData,
+    DepartmentDeleteData,
+)
 from data.repositories import DepartmentRepository
 
 
@@ -11,6 +16,19 @@ def validate_department_delete_query_data(
     try:
         data = DepartmentDeleteData(
             id=id, mode=mode, reassign_to_department_id=reassign_to_department_id
+        )
+    except ValidationError:
+        raise_unprocessable_content()
+    else:
+        return data
+
+
+def validate_department_get_query_data(
+    id: int, depth: int, include_employees: bool
+) -> DepartmentGetData:
+    try:
+        data = DepartmentGetData(
+            id=id, depth=depth, include_employees=include_employees
         )
     except ValidationError:
         raise_unprocessable_content()
