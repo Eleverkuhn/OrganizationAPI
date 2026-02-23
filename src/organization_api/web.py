@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from exceptions import DepartmentDoesNotExist
@@ -54,8 +53,8 @@ async def create_employee(
 ) -> EmployeeOut:
     try:
         employee: Employee = await service_create_employee(data, session)
-    except IntegrityError:
-        msg = "Can not create an employee for non existent department"
+    except DepartmentDoesNotExist as exc:
+        msg = str(exc)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     else:
         return employee

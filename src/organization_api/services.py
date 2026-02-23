@@ -7,6 +7,7 @@
 from loguru import logger
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import decl_api
 
 from models import (
     DepartmentIn,
@@ -120,10 +121,11 @@ async def service_create_department(
 async def service_create_employee(
     data: EmployeeIn, session=Depends(get_async_session)
 ) -> Employee:
+    department_repository = DepartmentRepository(session)
+    await check_department_exists(data.department_id, department_repository)
+
     repository = EmployeeRepository(session)
     employee = await repository.create(data.model_dump())
-    logger.debug(employee)
-
     logger.info(f"Created employee {employee.full_name} with ID {employee.id}")
 
     return employee
