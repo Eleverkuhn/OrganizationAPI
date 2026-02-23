@@ -204,3 +204,34 @@ async def test_change_department_raises_400_if_parent_id_does_not_exist(
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize("employees_data", [15], indirect=True)
+@pytest.mark.parametrize("departments_data", [5], indirect=True)
+@pytest.mark.asyncio
+async def test_delete_department_in_cascade_mode(
+    client: AsyncClient,
+    departments_data: FixtureContent,
+    employees_data: FixtureContent,
+    department_repository: DepartmentRepository,
+    employee_repository: EmployeeRepository,
+) -> None:
+    await department_repository.bulk_create(departments_data)
+    check_date_fields(employees_data)
+    await employee_repository.bulk_create(employees_data)
+
+    id_to_delete = 1
+    params = {"mode": "cascade"}
+
+    response = await client.delete(
+        app.url_path_for("delete_department", id=id_to_delete), params=params
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    for id in range(1, 6):
+        department = await department_repository.get(id)
+        assert not department
+
+    for id in range(1, 15):
+        employee = await employee_repository.get(id)
+        assert not employee

@@ -45,6 +45,12 @@ class DepartmentGetData(BaseModel):
     include_employees: bool
 
 
+class DepartmentDeleteData(BaseModel):
+    id: int
+    mode: str  # TODO:: add validation
+    reassign_to_department_id: int | None = None  # TODO:: add validation
+
+
 class EmployeeBase(BaseModel):
     department_id: int
     full_name: str = Field(

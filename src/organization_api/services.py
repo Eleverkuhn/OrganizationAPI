@@ -15,10 +15,12 @@ from models import (
     EmployeeIn,
     EmployeeOut,
     DepartmentGetData,
+    DepartmentDeleteData,
 )
 from validators import (
     validate_department_creation_data,
     validate_department_change_data,
+    check_department_exists,
 )
 from data.repositories import DepartmentRepository, EmployeeRepository
 from data.sql_models import Department, Employee
@@ -145,3 +147,13 @@ async def service_change_department(
     department_dumped = repository.dump(department)
 
     return department_dumped
+
+
+async def service_delete_deparment(
+    data: DepartmentDeleteData, session: AsyncSession
+) -> None:
+    repository = DepartmentRepository(session)
+    await check_department_exists(data.id, repository)
+    if data.mode == "cascade":
+        await repository.cascade_delete(data.id)
+        logger.info(f"Casacde delition of a department with ID: {data.id}")

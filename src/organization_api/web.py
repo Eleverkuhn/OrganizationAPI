@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from exceptions import DepartmentDoesNotExist
+from exceptions import DepartmentDoesNotExist, raise_unprocessable_content
 from models import (
     DepartmentIn,
     DepartmentOut,
@@ -11,12 +11,14 @@ from models import (
     EmployeeIn,
     EmployeeOut,
     DepartmentGetData,
+    DepartmentDeleteData,
 )
 from services import (
     service_create_department,
     service_create_employee,
     service_get_department,
     service_change_department,
+    service_delete_deparment,
 )
 from data.sql_models import Department, Employee
 from data.db_connection import get_async_session
@@ -96,3 +98,28 @@ async def change_department(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     else:
         return department
+
+
+@router.delete(
+    "/{id}", name="delete_department", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_department(
+    id: int,
+    mode: str,
+    reassign_to_department_id: int | None = None,
+    session: AsyncSession = Depends(get_async_session),
+) -> None:
+    try:
+        data = DepartmentDeleteData(
+            id=id, mode=mode, reassign_to_department_id=reassign_to_department_id
+        )
+    except ValidationError:
+        raise_unprocessable_content()
+    else:
+        try:
+            await service_delete_deparment(data, session)
+        except ValidationError as exc:
+            msg = str(exc)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        else:
+            return

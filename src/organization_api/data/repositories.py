@@ -57,6 +57,11 @@ class DepartmentRepository(BaseRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def cascade_delete(self, id: int) -> None:
+        department = await self.get(id)
+        await self.session.delete(department)
+        await self.session.commit()
+
     @override
     async def create(self, data: DepartmentCreation) -> Department | None:
         department = await super().create(data)

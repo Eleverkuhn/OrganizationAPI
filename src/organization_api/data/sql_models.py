@@ -80,7 +80,7 @@ class Employee(BaseMixin, Base):
     __tablename__ = "employees"
 
     department_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("departments.id"), nullable=False
+        Integer, ForeignKey("departments.id", ondelete="CASCADE"), nullable=False
     )
     full_name: Mapped[str] = mapped_column(
         String(DefaultField.MAX_TITLE_LEN), nullable=False
