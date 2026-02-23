@@ -1,6 +1,6 @@
 from datetime import datetime, date
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from data.sql_models import DefaultField
 
@@ -49,6 +49,19 @@ class DepartmentDeleteData(BaseModel):
     id: int
     mode: str  # TODO:: add validation
     reassign_to_department_id: int | None = None  # TODO:: add validation
+
+    @field_validator("mode", mode="after")
+    @classmethod
+    def mode_exists(cls, value: str) -> str:
+        if value not in ("cascade", "reassign"):
+            raise ValueError
+        return value
+
+    @model_validator(mode="after")
+    def validate_reassign(self):
+        if self.mode == "reassign" and self.reassign_to_department_id is None:
+            raise ValueError
+        return self
 
 
 class EmployeeBase(BaseModel):

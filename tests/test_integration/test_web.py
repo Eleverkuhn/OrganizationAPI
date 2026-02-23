@@ -235,3 +235,21 @@ async def test_delete_department_in_cascade_mode(
     for id in range(1, 15):
         employee = await employee_repository.get(id)
         assert not employee
+
+
+@pytest.mark.asyncio
+async def test_delete_returns_422_if_mode_is_invalid(client: AsyncClient) -> None:
+    params = {"mode": "invalid"}
+    response = await client.delete(
+        app.url_path_for("delete_department", id=1), params=params
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+@pytest.mark.asyncio
+async def test_delete_returns_422_if_reassign_with_no_id(client: AsyncClient) -> None:
+    params = {"mode": "reassign"}
+    response = await client.delete(
+        app.url_path_for("delete_department", id=1), params=params
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
